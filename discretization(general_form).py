@@ -4,6 +4,8 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
+from CFD.Discretization import a_known_e, a_known_w, a_known_n, a_known_s
+
 time1 = time.time()
 
 # # Setting
@@ -17,27 +19,15 @@ x0 = 0
 y0 = 0
 dx = (l_x / n_x)
 dy = (l_y / n_y)
-# variables
+# variables (Acceleration Part)
 x = np.reshape(np.zeros(n_y_max * n_x_max), [n_y_max, n_x_max])
 y = np.copy(x)
-h = np.copy(x)
 gamma = np.copy(x)
 gamma_e = np.copy(x)
 gamma_w = np.copy(x)
 gamma_n = np.copy(x)
 gamma_s = np.copy(x)
-dx_e = np.copy(x)
-dx_w = np.copy(x)
-dy_n = np.copy(x)
-dy_s = np.copy(x)
-area_w = np.copy(x)
-area_e = np.copy(x)
-area_n = np.copy(x)
-area_s = np.copy(x)
-a_known_w = np.copy(x)
-a_known_e = np.copy(x)
-a_known_n = np.copy(x)
-a_known_s = np.copy(x)
+
 
 for i in range(n_y_max):
     for j in range(n_x_max):
@@ -52,11 +42,10 @@ std_error = 0.001
 iteration = 0
 
 # # Initial Condition
-h_old = [float(d_a) for i in np.zeros(n_y_max * n_x_max)]  # 50[m] for every cells except top boundary
-# h_old = np.zeros(n_y_max * n_x_max)  # creating zero matrix for process acceleration
-h_old = np.reshape(h_old, [n_y_max, n_x_max])  # convert to matrix 10*10
-h_new = np.zeros(n_y_max * n_x_max)  # creating zero matrix for process acceleration
-h_new = np.reshape(h_new, [n_y_max, n_x_max])  # convert to matrix 10*10
+# 50[m] for every cells except top boundary
+h_old = np.reshape([float(d_a) for i in np.zeros(n_y_max * n_x_max)], [n_y_max, n_x_max])
+# creating zero matrix for process acceleration
+h_new = np.reshape([float(d_a) for i in np.zeros(n_y_max * n_x_max)], [n_y_max, n_x_max])
 
 # # Boundary Condition
 # top boundary
@@ -79,8 +68,8 @@ def whd(a_p=a_known_e + a_known_w + a_known_n + a_known_s, side_coefficient_w=a_
 while error > std_error:
     iteration += 1
 
-    for j in range(1, n_x_max - 1):
-        for i in range(1, n_y_max - 1):
+    for i in range(1, n_y_max - 1):
+        for j in range(1, n_x_max - 1):
             gamma_e = (gamma[i][j + 1] + gamma[i][j]) / 2
             gamma_w = (gamma[i][j-1] + gamma[i][j])/2
             gamma_n = (gamma[i-1][j]+gamma[i][j])/2
@@ -100,6 +89,7 @@ while error > std_error:
             a_known_s = gamma_s*area_s/dy_s
             s_p = 0.
             s_u = 0.
+
     # top boundary
     h_old[0] = 100
 
@@ -144,15 +134,15 @@ while error > std_error:
         for i in range(1, n_y_max - 1):
             h_new[i][j] = whd()
 
-    # error = np.linalg.norm((h_new - h_old), 2)
-    # print('\nL2Norm = %0.5f' % error)
+    error = np.linalg.norm((h_new - h_old), 2)
+    print('\nL2Norm = %0.5f' % error)
 
     print('iteration = ', iteration)
 
     # print('L2Norm = ', L2Norm)
 
     plt.contourf(h_new)
-    # plt.gca().invert_yaxis()
+    plt.gca().invert_yaxis()
     plt.axis('off')
     plt.grid()
     plt.colorbar().ax.set_ylabel('[m]', rotation=270)
