@@ -4,8 +4,6 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from CFD.Discretization import a_known_e, a_known_w, a_known_n, a_known_s
-
 time1 = time.time()
 
 # # Setting
@@ -57,14 +55,15 @@ q = 0.1  # newmann boundary [m/day]
 
 
 # # Governing Equation (Water Head Distribution)
-def whd(a_p=a_known_e + a_known_w + a_known_n + a_known_s, side_coefficient_w=a_known_w, side_coefficient_e=a_known_e,
-        side_coefficient_n=a_known_n, side_coefficient_s=a_known_s, source=0.):
-    h_p = ((1 / a_p) * (side_coefficient_w * h_old[i][j - 1] + side_coefficient_e * h_old[i][j + 1] +
-                        side_coefficient_n * h_old[i - 1][j] + side_coefficient_s * h_old[i + 1][j] + source))
-    return h_p
+# def whd(a_p=a_known_e + a_known_w + a_known_n + a_known_s, side_coefficient_w=a_known_w, side_coefficient_e=a_known_e,
+#         side_coefficient_n=a_known_n, side_coefficient_s=a_known_s, source=0.):
+#     h_p = ((1 / a_p) * (side_coefficient_w * h_old[i][j - 1] + side_coefficient_e * h_old[i][j + 1] +
+#                         side_coefficient_n * h_old[i - 1][j] + side_coefficient_s * h_old[i + 1][j] + source))
+#     return h_p
 
 
 # # Processing
+tdiff = std_error + std_error
 while error > std_error:
     iteration += 1
 
@@ -130,11 +129,13 @@ while error > std_error:
                                                                        h_old[i][j + 1])
 
     # main domain
+    a_p = a_known_e+a_known_w+a_known_n+a_known_s
     for j in range(1, n_x_max - 1):
         for i in range(1, n_y_max - 1):
-            h_new[i][j] = whd()
+            h_new[i][j] = ((1 / a_p) * (a_known_w * h_old[i][j - 1] + a_known_e * h_old[i][j + 1] +
+                                        a_known_n * h_old[i - 1][j] + a_known_s * h_old[i + 1][j] + s_u))
 
-    error = np.linalg.norm((h_new - h_old), 2)
+    # error = np.linalg.norm(h_new - h_old)
     print('\nL2Norm = %0.5f' % error)
 
     print('iteration = ', iteration)
@@ -145,7 +146,7 @@ while error > std_error:
     plt.gca().invert_yaxis()
     plt.axis('off')
     plt.grid()
-    plt.colorbar().ax.set_ylabel('[m]', rotation=270)
+    plt.colorbar().ax.set_ylabel('[m]')
     plt.pause(0.001)
     plt.show(block=False)
     plt.clf()
