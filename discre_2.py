@@ -47,11 +47,11 @@ h_new = np.reshape([float(d_a) for i in np.zeros(n_y_max * n_x_max)], [n_y_max, 
 
 # # Boundary Condition
 # top boundary
-# h_old[0] = 100  # Dirichlet boundary
+h_old[0] = 100  # Dirichlet boundary
 # h_new[0] = 100  # Dirichlet boundary
 
 # left boundary
-q = 0.1  # newmann boundary [m/day]
+q = 0.01  # newmann boundary [m/day]
 
 
 # # Governing Equation (Water Head Distribution)
@@ -64,7 +64,8 @@ q = 0.1  # newmann boundary [m/day]
 
 # # Processing
 tdiff = std_error + std_error
-while error > std_error:
+# while error > std_error:
+while iteration < 200:
     iteration += 1
 
     for i in range(1, n_y_max - 1):
@@ -89,8 +90,10 @@ while error > std_error:
             s_p = 0.
             s_u = 0.
 
-    # top boundary
-    h_old[0] = 100
+            # main domain
+            a_p = a_known_e + a_known_w + a_known_n + a_known_s
+            h_new[i][j] = ((1 / a_p) * (a_known_w * h_old[i][j - 1] + a_known_e * h_old[i][j + 1] +
+                                        a_known_n * h_old[i - 1][j] + a_known_s * h_old[i + 1][j] + s_u))
 
     # left_boundary (constant_flow)
     i = 0
@@ -103,39 +106,7 @@ while error > std_error:
                                                                        a_known_n * h_old[j - 1][0] + a_known_s *
                                                                        h_old[j + 1][0] + q * area_n)
 
-    # # # left boundary (no flow)
-    # j = 0
-    # for i in range(1, n_y_max - 1):
-    #     h_new[i][j] = (1 / (a_known_e + a_known_n + a_known_s)) * (a_known_e * h_old[i][j + 1] +
-    #                                                                a_known_n * h_old[i - 1][j] + a_known_s *
-    #                                                                h_old[i + 1][j])
-
-    # right boundary (no flow)
-    j = n_x_max - 1
-    for i in range(1, n_y_max - 1):
-        h_old[i][j] = (1 / (a_known_w + a_known_n + a_known_s)) * (a_known_w * h_old[i][j - 1] +
-                                                                   a_known_n * h_old[i - 1][j] + a_known_s *
-                                                                   h_old[i + 1][j])
-
-    # bottom boundary (no flow)
-    i = n_y_max - 1
-    for j in range(1, n_x_max):
-        if j == n_x_max - 1:
-            h_old[i][j] = (1 / (a_known_n + a_known_w + a_known_e)) * (a_known_w * h_old[i][j - 1] +
-                                                                       a_known_n * h_old[i - 1][j])
-        else:
-            h_old[i][j] = (1 / (a_known_n + a_known_w + a_known_e)) * (a_known_w * h_old[i][j - 1] +
-                                                                       a_known_n * h_old[i - 1][j] + a_known_e *
-                                                                       h_old[i][j + 1])
-
-    # main domain
-    a_p = a_known_e+a_known_w+a_known_n+a_known_s
-    for j in range(1, n_x_max - 1):
-        for i in range(1, n_y_max - 1):
-            h_new[i][j] = ((1 / a_p) * (a_known_w * h_old[i][j - 1] + a_known_e * h_old[i][j + 1] +
-                                        a_known_n * h_old[i - 1][j] + a_known_s * h_old[i + 1][j] + s_u))
-
-    # error = np.linalg.norm(h_new - h_old)
+    error = np.linalg.norm(h_new - h_old, 2)
     print('\nL2Norm = %0.5f' % error)
 
     print('iteration = ', iteration)
@@ -153,8 +124,8 @@ while error > std_error:
 
     h_old = h_new
 
-# print('L2Norm = ', np.linalg.norm(h_new))
-# print('iteration = ', iteration)
+print('L2Norm = ', np.linalg.norm(h_new))
+print('iteration = ', iteration)
 
 plt.contourf(h_new)
 plt.gca().invert_yaxis()
