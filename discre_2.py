@@ -26,7 +26,6 @@ gamma_w = np.copy(x)
 gamma_n = np.copy(x)
 gamma_s = np.copy(x)
 
-
 for i in range(n_y_max):
     for j in range(n_x_max):
         x[i][j] = float(j) * dx
@@ -48,11 +47,10 @@ h_new = np.reshape([float(d_a) for i in np.zeros(n_y_max * n_x_max)], [n_y_max, 
 # # Boundary Condition
 # top boundary
 h_old[0] = 100  # Dirichlet boundary
-# h_new[0] = 100  # Dirichlet boundary
+h_new[0] = 100  # Dirichlet boundary
 
 # left boundary
 q = 0.01  # newmann boundary [m/day]
-
 
 # # Governing Equation (Water Head Distribution)
 # def whd(a_p=a_known_e + a_known_w + a_known_n + a_known_s, side_coefficient_w=a_known_w, side_coefficient_e=a_known_e,
@@ -71,22 +69,22 @@ while iteration < 200:
     for i in range(1, n_y_max - 1):
         for j in range(1, n_x_max - 1):
             gamma_e = (gamma[i][j + 1] + gamma[i][j]) / 2
-            gamma_w = (gamma[i][j-1] + gamma[i][j])/2
-            gamma_n = (gamma[i-1][j]+gamma[i][j])/2
-            gamma_s = (gamma[i+1][j]+gamma[i][j])/2
-            dx_e = x[i][j+1]-x[i][j]
-            dx_w = x[i][j]-x[i][j-1]
-            dy_n = y[i][j] - y[i-1][j]
-            dy_s = y[i+1][j] - y[i][j]
-            area_e = y[i+1][j+1]-y[i][j+1]
-            area_w = y[i+1][j]-y[i][j]
-            area_n = x[i][j+1]-x[i][j]
-            area_s = x[i+1][j+1]-x[i+1][j]
+            gamma_w = (gamma[i][j - 1] + gamma[i][j]) / 2
+            gamma_n = (gamma[i - 1][j] + gamma[i][j]) / 2
+            gamma_s = (gamma[i + 1][j] + gamma[i][j]) / 2
+            dx_e = x[i][j + 1] - x[i][j]
+            dx_w = x[i][j] - x[i][j - 1]
+            dy_n = y[i][j] - y[i - 1][j]
+            dy_s = y[i + 1][j] - y[i][j]
+            area_e = y[i + 1][j + 1] - y[i][j + 1]
+            area_w = y[i + 1][j] - y[i][j]
+            area_n = x[i][j + 1] - x[i][j]
+            area_s = x[i + 1][j + 1] - x[i + 1][j]
 
-            a_known_e = gamma_e*area_e/dx_e
-            a_known_w = gamma_w*area_w/dx_w
-            a_known_n = gamma_n*area_n/dy_n
-            a_known_s = gamma_s*area_s/dy_s
+            a_known_e = gamma_e * area_e / dx_e
+            a_known_w = gamma_w * area_w / dx_w
+            a_known_n = gamma_n * area_n / dy_n
+            a_known_s = gamma_s * area_s / dy_s
             s_p = 0.
             s_u = 0.
 
@@ -96,18 +94,20 @@ while iteration < 200:
                                         a_known_n * h_old[i - 1][j] + a_known_s * h_old[i + 1][j] + s_u))
 
     # left_boundary (constant_flow)
-    i = 0
-    for j in range(1, n_y_max):
-        if j == n_y_max - 1:
-            h_old[j][i] = (1 / (a_known_e + a_known_n + a_known_s)) * ((2 * a_known_e) * h_old[j][i + 1] +
-                                                                       a_known_n * h_old[j - 1][0] + q * area_e)
+    j = 0
+    for i in range(1, n_y_max):
+        if i == n_y_max - 1:
+            h_new[i][j] = (1 / (a_known_e + a_known_n + a_known_s)) * ((2 * a_known_e) * h_old[i][j + 1] +
+                                                                       a_known_n * h_old[i - 1][0] + q * area_e)
         else:
-            h_old[j][i] = (1 / (a_known_e + a_known_n + a_known_s)) * ((2 * a_known_e) * h_old[j][i + 1] +
-                                                                       a_known_n * h_old[j - 1][0] + a_known_s *
-                                                                       h_old[j + 1][0] + q * area_n)
+            h_new[i][j] = (1 / (a_known_e + a_known_n + a_known_s)) * ((2 * a_known_e) * h_old[i][j + 1] +
+                                                                       a_known_n * h_old[i - 1][0] + a_known_s *
+                                                                       h_old[i + 1][0] + q * area_n)
 
-    error = np.linalg.norm(h_new - h_old, 2)
+    error = np.linalg.norm(h_new, 1)
+    # error2 = h_new - h_old
     print('\nL2Norm = %0.5f' % error)
+    # print(error2)
 
     print('iteration = ', iteration)
 
