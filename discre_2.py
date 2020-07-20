@@ -3,12 +3,13 @@
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import axes3d
 
 time1 = time.time()
 
 # # Setting
 l_x = 600  # length
-l_y = 400  # width
+l_y = 400  # height
 n_x = 60  # grid in x-axis
 n_y = 40  # grid in y-axis
 n_x_max = n_x + 1
@@ -33,7 +34,7 @@ for i in range(n_y_max - 1):
         gamma[i][j] = 2000
 
 d_a = 50
-omega = 0.8
+omega = 1
 error = 1000
 std_error = 0.001
 iteration = 0
@@ -50,7 +51,7 @@ h_old[0] = 100  # Dirichlet boundary
 h_new[0] = 100  # Dirichlet boundary
 
 # left boundary
-q = 0.01  # newmann boundary [m/day]
+q = 0.1  # newmann boundary [m/day]
 
 # # Governing Equation (Water Head Distribution)
 # def whd(a_p=a_known_e + a_known_w + a_known_n + a_known_s, side_coefficient_w=a_known_w, side_coefficient_e=a_known_e,
@@ -84,51 +85,63 @@ while error > std_error:
             a_known_n = gamma_n * area_n / dy_n
             a_known_s = gamma_s * area_s / dy_s
             s_p = 0.
-            s_u = 0.
+            s_u1, s_u2, s_u3, s_u4 = 0., 0., 0., 0.
 
-        if i == 1:
             # top boundary
-            h_old[0] = 100
+            if i == 1:
+                a_known_n = 2 * a_known_n
+                s_u1 = a_known_n * h_old[0][j]
+                s_p = -a_known_n
+                a_known_n = 0
 
-        # left_boundary (constant_flow)
-        if j == 0:
-            a_known_w = 0
+            # left_boundary (constant_flow)
+            if j == 1:
+                a_known_w = 0
+                s_u2 = q * d_a * dy
 
-        # # # left boundary (no flow)
-        # j = 0
-        # for i in range(1, n_y_max - 1):
-        #     h_new[i][j] = (1 / (a_known_e + a_known_n + a_known_s)) * (a_known_e * h_old[i][j + 1] +
-        #                                                                a_known_n * h_old[i - 1][j] + a_known_s *
-        #                                                                h_old[i + 1][j])
+            # right boundary (no flow)
+            if j == n_x - 2:
+                a_known_e = 0
+                s_u3 = 0
 
-        # right boundary (no flow)
-        if j == n_y - 1:
-            a_known_e = 0
-        # bottom boundary (no flow)
-        if i == n_y - 1:
-            a_known_s = 0
+            # bottom boundary (no flow)
+            if i == n_y - 2:
+                a_known_s = 0
+                s_u4 = 0
 
-        a_p = a_known_e + a_known_w + a_known_n + a_known_s
+            source = s_u1 + s_u2 + s_u3 + s_u4
+            a_p = a_known_e + a_known_w + a_known_n + a_known_s - s_p
 
-        h_new[i][j] = ((1 / a_p) * (a_known_w * h_old[i][j - 1] + a_known_e * h_old[i][j + 1] +
-                                    a_known_n * h_old[i - 1][j] + a_known_s * h_old[i + 1][j] + s_u))
+            h_new[i][j] = omega * ((1 / a_p) * (
+                    a_known_w * h_old[i][j - 1] + a_known_e * h_old[i][j + 1] + a_known_n * h_old[i - 1][j]
+                    + a_known_s * h_old[i + 1][j] + source)) + ((1 - omega) * h_old[i][j])
 
+    h_new[n_y - 1] = h_new[n_y - 2]
+    for i in range(n_y - 1):
+        h_new[i][n_x - 2] = h_new[i][n_x - 1]
+        h_new[i][0] = h_new[i][1] + (q * 2 * dx / 1000)
     error = np.linalg.norm(h_new - h_old, 2)
     print('\nL2Norm = %0.5f' % error)
 
     print('iteration = ', iteration)
 
-    # plt.contourf(h_new)
-    # plt.gca().invert_yaxis()
-    # plt.axis('off')
-    # plt.grid()
-    # plt.colorbar().ax.set_ylabel('[m]')
-    # plt.pause(0.001)
-    # plt.show(block=False)
-    # plt.clf()
+    plt.contourf(h_new)
+    plt.gca().invert_yaxis()
+    plt.axis('off')
+    plt.grid()
+    plt.colorbar().ax.set_ylabel('[m]')
 
-    for i in range(n_y_max - 1):
-        for j in range(n_x_max - 1):
+    # fig = plt.figure()
+    # ax = fig.gca(projection='3d')
+    # surf = ax.plot_surface(x, y, h_new)
+    # fig.colorbar(surf)
+
+    plt.pause(0.001)
+    plt.show(block=False)
+    plt.clf()
+
+    for i in range(n_y_max - 2):
+        for j in range(n_x_max - 2):
             h_old[i][j] = h_new[i][j]
 
 print('L2Norm = ', np.linalg.norm(h_new))
