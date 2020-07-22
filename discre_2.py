@@ -65,8 +65,8 @@ q = 0.1  # newmann boundary [m/day]
 while error > std_error:
     iteration += 1
 
-    for i in range(1, n_y - 1):
-        for j in range(1, n_x - 1):
+    for i in range(1, n_y_max - 1):
+        for j in range(1, n_x_max - 1):
             gamma_e = (gamma[i][j + 1] + gamma[i][j]) / 2
             gamma_w = (gamma[i][j - 1] + gamma[i][j]) / 2
             gamma_n = (gamma[i - 1][j] + gamma[i][j]) / 2
@@ -92,7 +92,7 @@ while error > std_error:
             s_u1, s_u2, s_u3, s_u4 = 0., 0., 0., 0.
 
             # top boundary
-            if i == 1:
+            if i == n_y_max - 2:
                 a_known_n = 2 * a_known_n
                 s_u1 = a_known_n * h_old[i + 1][j]
                 s_p = -a_known_n
@@ -109,7 +109,7 @@ while error > std_error:
                 s_u3 = 0
 
             # bottom boundary (no flow)
-            if i == n_y - 2:
+            if i == 1:
                 a_known_s = 0
                 s_u4 = 0
 
@@ -120,10 +120,10 @@ while error > std_error:
                     a_known_w * h_old[i][j - 1] + a_known_e * h_old[i][j + 1] + a_known_n * h_old[i - 1][j]
                     + a_known_s * h_old[i + 1][j] + source)) + ((1 - omega) * h_old[i][j])
 
-    h_new[0] = h_new[1]
-    for i in range(n_y_max):
-        h_new[i][-1] = h_new[i][-2]
-        h_new[i][0] = h_new[i][1] + (q * 2 * dx / 1000)
+    h_new[0][:] = h_new[1][:]
+    h_new[:][n_x_max - 1] = h_new[:][n_x_max - 2]
+    h_new[:][0] = h_new[:][1] + q * 2 * dx / 1000
+
     error = np.linalg.norm(h_new - h_old, 2)
     print('\nL2Norm = %0.5f' % error)
 
@@ -144,9 +144,11 @@ while error > std_error:
     plt.show(block=False)
     plt.clf()
 
-    for i in range(n_y_max):
-        for j in range(n_x_max):
-            h_old[i][j] = h_new[i][j]
+    # for i in range(n_y_max):
+    #     for j in range(n_x_max):
+    #         h_old[i][j] = h_new[i][j]
+
+    h_old[:][:] = h_new[:][:]
 
 print('L2Norm = ', np.linalg.norm(h_new))
 print('iteration = ', iteration)
