@@ -94,35 +94,35 @@ while error > std_error:
             # top boundary
             if i == n_y_max - 2:
                 a_known_n = 2 * a_known_n
-                s_u1 = a_known_n * h_old[i + 1][j]
+                s_u2 = a_known_n * h_old[i + 1][j]
                 s_p = -a_known_n
                 a_known_n = 0
 
             # left_boundary (constant_flow)
             if j == 1:
                 a_known_w = 0
-                s_u2 = q * d_a * dy
+                s_u3 = q * d_a * dy
 
             # right boundary (no flow)
             if j == n_x - 2:
                 a_known_e = 0
-                s_u3 = 0
+                s_u4 = 0
 
             # bottom boundary (no flow)
             if i == 1:
                 a_known_s = 0
-                s_u4 = 0
+                s_u1 = 0
 
             source = s_u1 + s_u2 + s_u3 + s_u4 - s_p
             a_p = a_known_e + a_known_w + a_known_n + a_known_s - s_p
 
-            h_new[i][j] = omega * ((1 / a_p) * (
-                    a_known_w * h_old[i][j - 1] + a_known_e * h_old[i][j + 1] + a_known_n * h_old[i - 1][j]
-                    + a_known_s * h_old[i + 1][j] + source)) + ((1 - omega) * h_old[i][j])
+            h_new[i][j] = omega * (a_known_e*h_old[i][j+1]+a_known_w*h_old[i][j-1]+a_known_n*h_old[i+1][j]+
+                                   a_known_s*h_old[i-1][j]+source)/a_p + (1-omega)*h_old[i][j]
 
     h_new[0][:] = h_new[1][:]
     h_new[:][n_x_max - 1] = h_new[:][n_x_max - 2]
-    h_new[:][0] = h_new[:][1] + q * 2 * dx / 1000
+    for i in range(n_y_max):
+        h_new[i][0] = h_new[i][1] + q * 2 * dx / 1000
 
     error = np.linalg.norm(h_new - h_old, 2)
     print('\nL2Norm = %0.5f' % error)
@@ -130,16 +130,9 @@ while error > std_error:
     print('iteration = ', iteration)
 
     plt.contourf(h_new)
-    plt.gca().invert_yaxis()
     plt.axis('off')
     plt.grid()
     plt.colorbar().ax.set_ylabel('[m]')
-
-    # fig = plt.figure()
-    # ax = fig.gca(projection='3d')
-    # surf = ax.plot_surface(x, y, h_new)
-    # fig.colorbar(surf)
-
     plt.pause(0.001)
     plt.show(block=False)
     plt.clf()
@@ -156,6 +149,10 @@ print('iteration = ', iteration)
 plt.contourf(h_new)
 plt.gca().invert_yaxis()
 plt.colorbar().ax.set_ylabel('[m]', rotation=270)
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+surf = ax.plot_surface(x, y, h_new)
+fig.colorbar(surf)
 plt.savefig('Final_Result.png')
 plt.show()
 
