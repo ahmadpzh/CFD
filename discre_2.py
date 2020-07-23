@@ -11,8 +11,8 @@ time1 = time.time()
 # # Setting
 l_x = 600  # length
 l_y = 400  # height
-n_x = 10  # grid in x-axis
-n_y = 10  # grid in y-axis
+n_x = 30  # grid in x-axis
+n_y = 20  # grid in y-axis
 n_x_max = n_x + 1
 n_y_max = n_y + 1
 x0 = 0
@@ -113,7 +113,6 @@ while error > std_error:
 
     for j in range(n_x_max):
         h_new[0][j] = h_new[1][j]
-    #     h_new[-1][j] = h_new[-2][j]
 
     for i in range(n_y_max):
         h_new[i][-1] = h_new[i][-2]
@@ -124,32 +123,32 @@ while error > std_error:
 
     print('iteration = ', iteration)
 
-    plt.contourf(h_new)
-    plt.gca().invert_yaxis()
-    plt.axis('off')
-    plt.grid()
-    plt.colorbar().ax.set_ylabel('[m]')
-    plt.pause(0.001)
-    plt.show(block=False)
-    plt.clf()
+    # plt.contourf(h_new)
+    # plt.gca().invert_yaxis()
+    # plt.axis('off')
+    # plt.grid()
+    # plt.colorbar().ax.set_ylabel('[m]')
+    # plt.pause(0.001)
+    # plt.show(block=False)
+    # plt.clf()
 
     h_old[:][:] = h_new[:][:]
 
-print('L2Norm = ', np.linalg.norm(h_new))
+print('L2Norm = ', error)
 print('iteration = ', iteration)
 
-plt.contourf(h_new)
-plt.gca().invert_yaxis()
-plt.colorbar().ax.set_ylabel('[m]', rotation=270)
+# plt.contourf(h_new)
+# plt.gca().invert_yaxis()
+# plt.colorbar().ax.set_ylabel('[m]', rotation=270)
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-surf = ax.plot_surface(x, y, h_new, cmap=cm.coolwarm)
+surf = ax.plot_surface(x, y, h_new, cmap=cm.viridis)
 fig.colorbar(surf)
-plt.savefig('Final_Result.png')
+# plt.savefig('Final_Result.png')
 plt.show(block=False)
 
 time2 = time.time()
 
-print('\nTotal time = ', (time2 - time1)/60)
+print('\nTotal time = ', (time2 - time1))
 
 print()

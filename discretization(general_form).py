@@ -28,8 +28,8 @@ gamma_s = np.copy(x)
 
 for i in range(n_y_max - 1):
     for j in range(n_x_max - 1):
-        x[i][j] = float(j) * dx + dx
-        y[i][j] = float(i) * dy + dy
+        x[i][j] = float(j) * dx
+        y[i][j] = float(i) * dy
         gamma[i][j] = 2000
 
 d_a = 50
@@ -65,7 +65,7 @@ while error > std_error:
     iteration += 1
 
     for i in range(1, n_y - 1):
-        for j in range(1, n_x - 1):
+        for j in range(n_x - 1):
             gamma_e = (gamma[i][j + 1] + gamma[i][j]) / 2
             gamma_w = (gamma[i][j - 1] + gamma[i][j]) / 2
             gamma_n = (gamma[i - 1][j] + gamma[i][j]) / 2
@@ -87,6 +87,7 @@ while error > std_error:
             s_u = 0.
 
             a_p = a_known_e + a_known_w + a_known_n + a_known_s
+
             h_new[i][j] = ((1 / a_p) * (a_known_w * h_old[i][j - 1] + a_known_e * h_old[i][j + 1] +
                                         a_known_n * h_old[i - 1][j] + a_known_s * h_old[i + 1][j] + s_u))
 
@@ -96,6 +97,9 @@ while error > std_error:
     # left_boundary (constant_flow)
     j = 0
     for i in range(1, n_y - 1):
+        a_known_e = ((gamma[i][0] + gamma[i][1])/2) * area_e / dx_e
+        a_known_n = ((gamma[i][0] + gamma[i - 1][0])/2) * area_n / dy_n
+        a_known_s = ((gamma[i][0] + gamma[i + 1][0])/2) * area_s / dy_s
         if i == n_y_max - 1:
             h_new[i][j] = (1 / (a_known_e + a_known_n + a_known_s)) * ((2 * a_known_e) * h_old[i][j + 1] +
                                                                        a_known_n * h_old[i - 1][0] + q * (dx_w * d_a))
@@ -114,6 +118,9 @@ while error > std_error:
     # right boundary (no flow)
     j = n_x - 1
     for i in range(1, n_y - 1):
+        a_known_w = ((gamma[i][n_x - 1] + gamma[i][n_x - 2]) / 2) * area_e / dx_w
+        a_known_n = ((gamma[i][n_x - 1] + gamma[i - 1][n_x - 1]) / 2) * area_n / dy_n
+        a_known_s = ((gamma[i][n_x - 1] + gamma[i + 1][n_x - 1]) / 2) * area_s / dy_s
         h_new[i][j] = (1 / (a_known_w + a_known_n + a_known_s)) * (a_known_w * h_old[i][j - 1] +
                                                                    a_known_n * h_old[i - 1][j] + a_known_s *
                                                                    h_old[i + 1][j])
@@ -121,7 +128,10 @@ while error > std_error:
     # bottom boundary (no flow)
     i = n_y - 1
     for j in range(1, n_x - 1):
+        a_known_w = ((gamma[n_y - 1][j] + gamma[i][j - 1]) / 2) * area_e / dx_w
+        a_known_n = ((gamma[i - 1][j] + gamma[i][j]) / 2) * area_n / dy_n
         if j == n_x_max - 1:
+            a_known_e = ((gamma[n_y - 1][j] + gamma[n_y][j + 1]) / 2) * area_s / dx_e
             h_new[i][j] = (1 / (a_known_n + a_known_w + a_known_e)) * (a_known_w * h_old[i][j - 1] +
                                                                        a_known_n * h_old[i - 1][j])
         else:
