@@ -3,7 +3,8 @@
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
+from matplotlib import cm
+from mpl_toolkits.mplot3d import Axes3D
 
 time1 = time.time()
 
@@ -53,13 +54,6 @@ h_new[0] = 100  # Dirichlet boundary
 # left boundary
 q = 0.1  # newmann boundary [m/day]
 
-# # Governing Equation (Water Head Distribution)
-# def whd(a_p=a_known_e + a_known_w + a_known_n + a_known_s, side_coefficient_w=a_known_w, side_coefficient_e=a_known_e,
-#         side_coefficient_n=a_known_n, side_coefficient_s=a_known_s, source=0.):
-#     h_p = ((1 / a_p) * (side_coefficient_w * h_old[i][j - 1] + side_coefficient_e * h_old[i][j + 1] +
-#                         side_coefficient_n * h_old[i - 1][j] + side_coefficient_s * h_old[i + 1][j] + source))
-#     return h_p
-
 
 # # Processing
 while error > std_error:
@@ -75,10 +69,7 @@ while error > std_error:
             dx_w = x[i][j] - x[i][j - 1]
             dy_n = y[i][j] - y[i - 1][j]
             dy_s = y[i + 1][j] - y[i][j]
-            # area_e = dy_n * d_a
-            # area_w = dy_n * d_a
-            # area_n = dx_e * d_a
-            # area_s = dx_w * d_a
+
             area_e = y[i + 1][j + 1] - y[i][j + 1]
             area_w = y[i + 1][j] - y[i][j]
             area_n = x[i + 1][j + 1] - x[i + 1][j]
@@ -92,7 +83,7 @@ while error > std_error:
             s_u1, s_u2, s_u3, s_u4 = 0., 0., 0., 0.
 
             # top boundary
-            if i == n_y_max - 2:
+            if i == 1:
                 a_known_n = 2 * a_known_n
                 s_u2 = a_known_n * h_old[i + 1][j]
                 s_p = -a_known_n
@@ -109,19 +100,23 @@ while error > std_error:
                 s_u4 = 0
 
             # bottom boundary (no flow)
-            if i == 1:
+            if i == n_y_max - 2:
                 a_known_s = 0
                 s_u1 = 0
 
             source = s_u1 + s_u2 + s_u3 + s_u4 - s_p
             a_p = a_known_e + a_known_w + a_known_n + a_known_s - s_p
 
-            h_new[i][j] = omega * (a_known_e*h_old[i][j+1]+a_known_w*h_old[i][j-1]+a_known_n*h_old[i+1][j]+
-                                   a_known_s*h_old[i-1][j]+source)/a_p + (1-omega)*h_old[i][j]
+            h_new[i][j] = omega * (
+                        a_known_e * h_old[i][j + 1] + a_known_w * h_old[i][j - 1] + a_known_n * h_old[i + 1][j] +
+                        a_known_s * h_old[i - 1][j] + source) / a_p + (1 - omega) * h_old[i][j]
 
-    h_new[0][:] = h_new[1][:]
-    h_new[:][n_x_max - 1] = h_new[:][n_x_max - 2]
+    for j in range(n_x_max):
+        h_new[0][j] = h_new[1][j]
+    #     h_new[-1][j] = h_new[-2][j]
+
     for i in range(n_y_max):
+        h_new[i][-1] = h_new[i][-2]
         h_new[i][0] = h_new[i][1] + q * 2 * dx / 1000
 
     error = np.linalg.norm(h_new - h_old, 2)
@@ -130,16 +125,13 @@ while error > std_error:
     print('iteration = ', iteration)
 
     plt.contourf(h_new)
+    plt.gca().invert_yaxis()
     plt.axis('off')
     plt.grid()
     plt.colorbar().ax.set_ylabel('[m]')
     plt.pause(0.001)
     plt.show(block=False)
     plt.clf()
-
-    # for i in range(n_y_max):
-    #     for j in range(n_x_max):
-    #         h_old[i][j] = h_new[i][j]
 
     h_old[:][:] = h_new[:][:]
 
@@ -151,13 +143,13 @@ plt.gca().invert_yaxis()
 plt.colorbar().ax.set_ylabel('[m]', rotation=270)
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-surf = ax.plot_surface(x, y, h_new)
+surf = ax.plot_surface(x, y, h_new, cmap=cm.coolwarm)
 fig.colorbar(surf)
 plt.savefig('Final_Result.png')
-plt.show()
+plt.show(block=False)
 
 time2 = time.time()
 
-print('\nTotal time = ', time2 - time1)
+print('\nTotal time = ', (time2 - time1)/60)
 
 print()
