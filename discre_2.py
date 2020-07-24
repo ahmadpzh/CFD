@@ -123,6 +123,8 @@ while error > std_error:
     error = np.linalg.norm(h_new - h_old, 2)
     print('\nL2Norm = %0.10f' % error)
 
+    print('h center= %0.10f' % (h_new[5][5] - h_old[5][5]))
+
     print('iteration = ', iteration)
 
     # plt.contourf(h_new)
