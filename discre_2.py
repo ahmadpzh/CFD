@@ -11,8 +11,8 @@ time1 = time.time()
 # # Setting
 l_x = 600  # length
 l_y = 400  # height
-n_x = 30  # grid in x-axis
-n_y = 20  # grid in y-axis
+n_x = 10  # grid in x-axis
+n_y = 10  # grid in y-axis
 n_x_max = n_x + 1
 n_y_max = n_y + 1
 x0 = 0
@@ -116,7 +116,7 @@ while error > std_error:
 
     for i in range(n_y_max):
         h_new[i][-1] = h_new[i][-2]
-        h_new[i][0] = h_new[i][1] + q * 2 * dx / 1000
+        h_new[i][0] = h_new[i][1] + q
 
     error = np.linalg.norm(h_new - h_old, 2)
     print('\nL2Norm = %0.5f' % error)
@@ -132,7 +132,16 @@ while error > std_error:
     # plt.show(block=False)
     # plt.clf()
 
-    h_old[:][:] = h_new[:][:]
+    # fig = plt.figure()
+    # ax = fig.gca(projection='3d')
+    # surf = ax.plot_surface(x, y, h_new, cmap=cm.viridis)
+    # fig.colorbar(surf)
+    # plt.show(block=False)
+    # plt.pause(1)
+    # plt.close()
+    for i in range(n_y_max):
+        for j in range(n_x_max):
+            h_old[i][j] = h_new[i][j]
 
 print('L2Norm = ', error)
 print('iteration = ', iteration)
@@ -142,6 +151,7 @@ print('iteration = ', iteration)
 # plt.colorbar().ax.set_ylabel('[m]', rotation=270)
 fig = plt.figure()
 ax = fig.gca(projection='3d')
+fig.gca().invert_xaxis()
 surf = ax.plot_surface(x, y, h_new, cmap=cm.viridis)
 fig.colorbar(surf)
 # plt.savefig('Final_Result.png')
@@ -149,6 +159,6 @@ plt.show(block=False)
 
 time2 = time.time()
 
-print('\nTotal time = ', (time2 - time1))
+print('\nTotal time = ', (time2 - time1)/60)
 
 print()
