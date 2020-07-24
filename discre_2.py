@@ -34,8 +34,8 @@ for i in range(n_y_max):
         y[i][j] = float(i) * dy
         gamma[i][j] = 1000
 
-d_a = 50
-omega = 1
+d_a = 100
+omega = 0.7
 error = 1000
 std_error = 0.001
 iteration = 0
@@ -52,7 +52,7 @@ h_old[0] = 100  # Dirichlet boundary
 h_new[0] = 100  # Dirichlet boundary
 
 # left boundary
-q = 0.1  # newmann boundary [m/day]
+q = 0.1    # newmann boundary [m/day]
 
 
 # # Processing
@@ -85,8 +85,10 @@ while error > std_error:
             # top boundary
             if i == 1:
                 a_known_n = 2 * a_known_n
-                s_u2 = a_known_n * h_old[i + 1][j]
-                s_p = -a_known_n
+                # s_u2 = a_known_n * h_old[i + 1][j]
+                # s_p = -a_known_n
+                s_u2 = 0
+                s_p = 0
                 a_known_n = 0
 
             # left_boundary (constant_flow)
@@ -112,14 +114,16 @@ while error > std_error:
                         a_known_s * h_old[i - 1][j] + source) / a_p + (1 - omega) * h_old[i][j]
 
     for j in range(n_x_max):
-        h_new[0][j] = h_new[1][j]
+        h_new[-1][j] = h_new[-2][j]
 
     for i in range(n_y_max):
         h_new[i][-1] = h_new[i][-2]
         h_new[i][0] = h_new[i][1] + q
 
     error = np.linalg.norm(h_new - h_old, 2)
-    print('\nL2Norm = %0.5f' % error)
+    print('\nL2Norm = %0.10f' % error)
+
+    print('h center= %0.10f' % (h_new[4][4] - h_old[4][4]))
 
     print('iteration = ', iteration)
 
@@ -128,7 +132,7 @@ while error > std_error:
     # plt.axis('off')
     # plt.grid()
     # plt.colorbar().ax.set_ylabel('[m]')
-    # plt.pause(0.001)
+    # plt.pause(0.0001)
     # plt.show(block=False)
     # plt.clf()
 
@@ -146,12 +150,12 @@ while error > std_error:
 print('L2Norm = ', error)
 print('iteration = ', iteration)
 
-# plt.contourf(h_new)
-# plt.gca().invert_yaxis()
-# plt.colorbar().ax.set_ylabel('[m]', rotation=270)
+plt.contourf(h_new)
+plt.gca().invert_yaxis()
+plt.colorbar().ax.set_ylabel('[m]', rotation=270)
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-fig.gca().invert_xaxis()
+fig.gca().invert_yaxis()
 surf = ax.plot_surface(x, y, h_new, cmap=cm.viridis)
 fig.colorbar(surf)
 # plt.savefig('Final_Result.png')
