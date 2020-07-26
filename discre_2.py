@@ -85,10 +85,10 @@ while error > std_error:
             # top boundary
             if i == 1:
                 a_known_n = 2 * a_known_n
-                # s_u2 = a_known_n * h_old[i + 1][j]
-                # s_p = -a_known_n
-                s_u2 = 0
-                s_p = 0
+                s_u2 = a_known_n * h_old[i + 1][j]
+                s_p = -a_known_n
+                # s_u2 = 0
+                # s_p = 0
                 a_known_n = 0
 
             # left_boundary (constant_flow)
@@ -143,9 +143,10 @@ while error > std_error:
     # plt.show(block=False)
     # plt.pause(1)
     # plt.close()
-    for i in range(n_y_max):
-        for j in range(n_x_max):
-            h_old[i][j] = h_new[i][j]
+    # for i in range(n_y_max):
+    #     for j in range(n_x_max):
+    #         h_old[i][j] = h_new[i][j]
+    h_old = np.copy(h_new)
 
 print('L2Norm = ', error)
 print('iteration = ', iteration)
