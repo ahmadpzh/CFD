@@ -12,7 +12,7 @@ time1 = time.time()
 l = 10  # length
 w = l / 5  # width
 n_x = 20  # grid in x-axis
-n_y = 10  # grid in y-axis
+n_y = 40  # grid in y-axis
 n_x_max = n_x + 1
 n_y_max = n_y + 1
 x0 = 0
@@ -35,9 +35,9 @@ gamma_e = np.copy(x)
 gamma_w = np.copy(x)
 gamma_n = np.copy(x)
 gamma_s = np.copy(x)
+r = np.copy(x)
 u = np.copy(x)
 v = np.copy(x)
-h = np.copy(x)
 
 for i in range(n_y_max):
     for j in range(n_x_max):
@@ -47,23 +47,22 @@ for i in range(n_y_max):
         u[i][j] = u_max * (1 - (2 * y[i][j] / w - 1) ** 2)
         v[i][j] = 0
 
-d_a = 100
-omega = 0.7
+omega = 1
 error = 1000
 std_error = 0.001
 iteration = 0
 
 # # Initial Condition
 # 50[m] for every cells except top boundary
-h_old = np.reshape([float(d_a) for i in np.zeros(n_y_max * n_x_max)], [n_y_max, n_x_max])
+h_old = np.reshape(np.zeros(n_y_max * n_x_max), [n_y_max, n_x_max])
 # creating zero matrix for process acceleration
-h_new = np.reshape([float(d_a) for i in np.zeros(n_y_max * n_x_max)], [n_y_max, n_x_max])
+h_new = np.reshape(np.zeros(n_y_max * n_x_max), [n_y_max, n_x_max])
 
 # # Boundary Condition
 # top boundary
-h[0] = 100
-h[n_y_max - 1] = 100
-h_new[:] = h
+h_old[0] = 100
+h_old[n_y_max - 1] = 100
+h_new[:] = h_old
 
 # left boundary
 q = 0.1  # newmann boundary [m/day]
@@ -109,51 +108,60 @@ while error > std_error:
             a_known_s = gamma_s * area_s / dy_s
             s_p = 0.
             s_u1, s_u2, s_u3, s_u4 = 0., 0., 0., 0.
+            s_p1, s_p2, s_p3, s_p4 = 0., 0., 0., 0.
+            s_u = r[i][j] * dx * dy
+            df = f_e - f_w + f_n - f_s
 
             # top boundary
             if i == 1:
                 a_known_n = 0
-                s_u2 = 2 * d_n * h[i - 1][j]
-                s_p = -(2 * d_n)
+                s_u2 = 2 * d_n * h_old[i - 1][j]
+                s_p2 = -(2*d_n)
                 # s_u2 = 0
                 # s_p = 0
 
             # left_boundary (constant_flow)
             if j == 1:
                 a_known_w = 0
-                s_u3 = -(2 * d_w + f_w) * h[i][j - 1]
+                s_u3 = -(2 * d_w + f_w) * h_old[i][j - 1]
+                s_p3 = -(2 * d_w + f_w)
 
             # right boundary (no flow)
             if j == n_x - 2:
                 a_known_e = 0
                 s_u4 = 0
+                SP1 = -(2 * d_s + f_s)
 
             # bottom boundary (no flow)
             if i == n_y_max - 2:
                 a_known_s = 0
-                s_u1 = (2 * d_s + f_s) * h[i + 1][j]
-                s_p = -(2 * d_s + f_s)
+                s_u1 = (2 * d_s + f_s) * h_old[i + 1][j]
+                s_p2 = -(2 * d_s + f_s)
 
-            source = s_u1 + s_u2 + s_u3 + s_u4 - s_p
-            a_p = a_known_e + a_known_w + a_known_n + a_known_s - s_p
+            source = s_u1 + s_u2 + s_u3 + s_u4 + s_u
+            s_p = s_p1 + s_p2 + s_p3 + s_p4
+            a_p = a_known_e + a_known_w + a_known_n + a_known_s - s_p + df
 
             h_new[i][j] = omega * (
                     a_known_e * h_old[i][j + 1] + a_known_w * h_old[i][j - 1] + a_known_n * h_old[i + 1][j] +
                     a_known_s * h_old[i - 1][j] + source) / a_p + (1 - omega) * h_old[i][j]
+
+    for i in range(n_y_max):
+        h_new[i][n_x_max - 1] = h_new[i][n_x_max - 2]
 
     error = np.linalg.norm(h_new - h_old, 2)
     print('\nL2Norm = %0.10f' % error)
 
     print('iteration = ', iteration)
 
-    plt.contourf(h_new)
-    plt.gca().invert_xaxis()
-    plt.axis('off')
-    plt.grid()
-    plt.colorbar().ax.set_ylabel('[m]')
-    plt.pause(0.0001)
-    plt.show(block=False)
-    plt.clf()
+    # plt.contourf(h_new)
+    # plt.gca().invert_yaxis()
+    # plt.axis('off')
+    # plt.grid()
+    # plt.colorbar().ax.set_ylabel('[m]')
+    # plt.pause(0.0001)
+    # plt.show(block=False)
+    # plt.clf()
 
     # fig = plt.figure()
     # ax = fig.gca(projection='3d')
@@ -162,7 +170,7 @@ while error > std_error:
     # plt.show(block=False)
     # plt.pause(1)
     # plt.close()
-    h_old[:] = h_new
+    h_old[:][:] = h_new
 
 print('L2Norm = ', error)
 print('iteration = ', iteration)
