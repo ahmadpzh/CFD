@@ -34,26 +34,26 @@ for i in range(n_y_max):
         y[i][j] = float(i) * dy
         gamma[i][j] = 1000
 
-d_a = 100
-omega = 0.7
+d_a = 50
+omega = 1
 error = 1000
 std_error = 0.001
 iteration = 0
 
 # # Initial Condition
-# 50[m] for every cells except top boundary
-h_old = np.reshape([float(d_a) for i in np.zeros(n_y_max * n_x_max)], [n_y_max, n_x_max])
-# creating zero matrix for process acceleration
-h_new = np.reshape([float(d_a) for i in np.zeros(n_y_max * n_x_max)], [n_y_max, n_x_max])
+# h_old = np.reshape([100 for i in np.zeros(n_y_max * n_x_max)], [n_y_max, n_x_max])
+h_old = np.reshape(np.zeros(n_y_max * n_x_max), [n_y_max, n_x_max])
+h_old[:] = 100
 
+# creating zero matrix for process acceleration
+h_new = np.copy(h_old)
 # # Boundary Condition
 # top boundary
-h_old[0] = 100  # Dirichlet boundary
-h_new[0] = 100  # Dirichlet boundary
+h_old[-1] = 100  # Dirichlet boundary
+h_new[-1] = 100  # Dirichlet boundary
 
 # left boundary
-q = 0.1    # newmann boundary [m/day]
-
+q = 0.1  # newmann boundary [m/day]
 
 # # Processing
 while error > std_error:
@@ -63,12 +63,12 @@ while error > std_error:
         for j in range(1, n_x_max - 1):
             gamma_e = (gamma[i][j + 1] + gamma[i][j]) / 2
             gamma_w = (gamma[i][j - 1] + gamma[i][j]) / 2
-            gamma_n = (gamma[i - 1][j] + gamma[i][j]) / 2
-            gamma_s = (gamma[i + 1][j] + gamma[i][j]) / 2
+            gamma_n = (gamma[i + 1][j] + gamma[i][j]) / 2
+            gamma_s = (gamma[i - 1][j] + gamma[i][j]) / 2
             dx_e = x[i][j + 1] - x[i][j]
             dx_w = x[i][j] - x[i][j - 1]
-            dy_n = y[i][j] - y[i - 1][j]
-            dy_s = y[i + 1][j] - y[i][j]
+            dy_n = y[i + 1][j] - y[i][j]
+            dy_s = y[i][j] - y[i - 1][j]
 
             area_e = y[i + 1][j + 1] - y[i][j + 1]
             area_w = y[i + 1][j] - y[i][j]
@@ -83,7 +83,7 @@ while error > std_error:
             s_u1, s_u2, s_u3, s_u4 = 0., 0., 0., 0.
 
             # top boundary
-            if i == 1:
+            if i == n_y_max - 2:
                 a_known_n = 2 * a_known_n
                 s_u2 = a_known_n * h_old[i + 1][j]
                 s_p = -a_known_n
@@ -102,39 +102,36 @@ while error > std_error:
                 s_u4 = 0
 
             # bottom boundary (no flow)
-            if i == n_y_max - 2:
+            if i == 1:
                 a_known_s = 0
                 s_u1 = 0
 
             source = s_u1 + s_u2 + s_u3 + s_u4 - s_p
             a_p = a_known_e + a_known_w + a_known_n + a_known_s - s_p
 
-            h_new[i][j] = omega * (
+            h_new[i][j] = omega * (1 / a_p) * (
                         a_known_e * h_old[i][j + 1] + a_known_w * h_old[i][j - 1] + a_known_n * h_old[i + 1][j] +
-                        a_known_s * h_old[i - 1][j] + source) / a_p + (1 - omega) * h_old[i][j]
+                        a_known_s * h_old[i - 1][j] + source) + (1 - omega) * h_old[i][j]
 
     for j in range(n_x_max):
-        h_new[-1][j] = h_new[-2][j]
+        h_new[0][j] = h_new[1][j]
 
     for i in range(n_y_max):
         h_new[i][-1] = h_new[i][-2]
-        h_new[i][0] = h_new[i][1] + q
+        h_new[i][0] = h_new[i][1] + (q * 2 * dx / 1000)
 
     error = np.linalg.norm(h_new - h_old, 2)
     print('\nL2Norm = %0.10f' % error)
 
-    print('h center= %0.10f' % (h_new[5][5] - h_old[5][5]))
-
     print('iteration = ', iteration)
 
-    # plt.contourf(h_new)
-    # plt.gca().invert_yaxis()
-    # plt.axis('off')
-    # plt.grid()
-    # plt.colorbar().ax.set_ylabel('[m]')
-    # plt.pause(0.0001)
-    # plt.show(block=False)
-    # plt.clf()
+    plt.contourf(h_new)
+    plt.axis('off')
+    plt.grid()
+    plt.colorbar().ax.set_ylabel('[m]')
+    plt.pause(0.0001)
+    plt.show(block=False)
+    plt.clf()
 
     # fig = plt.figure()
     # ax = fig.gca(projection='3d')
@@ -146,17 +143,15 @@ while error > std_error:
     # for i in range(n_y_max):
     #     for j in range(n_x_max):
     #         h_old[i][j] = h_new[i][j]
-    h_old = np.copy(h_new)
+    h_old[:] = h_new
 
 print('L2Norm = ', error)
 print('iteration = ', iteration)
 
 plt.contourf(h_new)
-plt.gca().invert_yaxis()
 plt.colorbar().ax.set_ylabel('[m]', rotation=270)
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-fig.gca().invert_yaxis()
 surf = ax.plot_surface(x, y, h_new, cmap=cm.viridis)
 fig.colorbar(surf)
 # plt.savefig('Final_Result.png')
@@ -164,6 +159,6 @@ plt.show(block=False)
 
 time2 = time.time()
 
-print('\nTotal time = ', (time2 - time1)/60)
+print('\nTotal time = ', (time2 - time1) / 60)
 
 print()
