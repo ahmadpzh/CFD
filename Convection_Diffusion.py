@@ -75,12 +75,12 @@ while error > std_error:
         for j in range(1, n_x_max - 1):
             gamma_e = (gamma[i][j + 1] + gamma[i][j]) / 2
             gamma_w = (gamma[i][j - 1] + gamma[i][j]) / 2
-            gamma_n = (gamma[i - 1][j] + gamma[i][j]) / 2
-            gamma_s = (gamma[i + 1][j] + gamma[i][j]) / 2
+            gamma_n = (gamma[i + 1][j] + gamma[i][j]) / 2
+            gamma_s = (gamma[i - 1][j] + gamma[i][j]) / 2
             dx_e = x[i][j + 1] - x[i][j]
             dx_w = x[i][j] - x[i][j - 1]
-            dy_n = y[i][j] - y[i - 1][j]
-            dy_s = y[i + 1][j] - y[i][j]
+            dy_n = y[i + 1][j] - y[i][j]
+            dy_s = y[i][j] - y[i - 1][j]
 
             area_e = y[i + 1][j + 1] - y[i][j + 1]
             area_w = y[i + 1][j] - y[i][j]
@@ -113,9 +113,9 @@ while error > std_error:
             df = f_e - f_w + f_n - f_s
 
             # top boundary
-            if i == 1:
+            if i == n_y_max - 2:
                 a_known_n = 0
-                s_u2 = 2 * d_n * h_old[i - 1][j]
+                s_u2 = 2 * d_n * h_old[i + 1][j]
                 s_p2 = -(2*d_n)
                 # s_u2 = 0
                 # s_p = 0
@@ -127,15 +127,15 @@ while error > std_error:
                 s_p3 = -(2 * d_w + f_w)
 
             # right boundary (no flow)
-            if j == n_x - 2:
+            if j == n_x_max - 2:
                 a_known_e = 0
                 s_u4 = 0
                 SP1 = -(2 * d_s + f_s)
 
             # bottom boundary (no flow)
-            if i == n_y_max - 2:
+            if i == 1:
                 a_known_s = 0
-                s_u1 = (2 * d_s + f_s) * h_old[i + 1][j]
+                s_u1 = (2 * d_s + f_s) * h_old[i - 1][j]
                 s_p2 = -(2 * d_s + f_s)
 
             source = s_u1 + s_u2 + s_u3 + s_u4 + s_u
@@ -150,7 +150,7 @@ while error > std_error:
         h_new[i][n_x_max - 1] = h_new[i][n_x_max - 2]
 
     error = np.linalg.norm(h_new - h_old, 2)
-    print('\nL2Norm = %0.10f' % error)
+    print('\nL2Norm = %0.5f' % error)
 
     print('iteration = ', iteration)
 
@@ -170,7 +170,7 @@ while error > std_error:
     # plt.show(block=False)
     # plt.pause(1)
     # plt.close()
-    h_old[:][:] = h_new
+    h_old[:] = h_new
 
 print('L2Norm = ', error)
 print('iteration = ', iteration)
