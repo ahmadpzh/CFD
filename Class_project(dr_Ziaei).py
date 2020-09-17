@@ -60,15 +60,8 @@ r = dt / dx
 
 time_count = int(t / dt)
 
-cl = np.zeros([nxc, time_count])
-ul = np.copy(cl)
-cr = np.copy(cl)
-ur = np.copy(cl)
-hl = np.copy(cl)
-hr = np.copy(cl)
-
-hp = np.copy(cl)
-up = np.copy(cl)
+hp = np.zeros([nxc, time_count])
+up = np.zeros([nxc, time_count])
 
 while e_t < t:
     e_t += dt
@@ -77,14 +70,16 @@ while e_t < t:
         c_b = sqrt(9.81 * h[i])
         c_a = sqrt(9.81 * h[i - 1])
         c_c = sqrt(9.81 * h[i + 1])
+        h[0] = h[0] + 0.2958
+
         'left node'
-        cl = (c_b + (r * c_a * u[i] - c_b * u[i - 1])) / (1 + (r * (u[i] + c_b - (u[i - 1] + c_a))))
+        cl = (c_b + (r * (c_a * u[i] - c_b * u[i - 1]))) / (1 + (r * (u[i] + c_b - (u[i - 1] + c_a))))
         ul = (u[i] - r * (u[i] - u[i - 1]) * cl) / (1 + r * (u[i] - u[i - 1]))
         hl = h[i] - (r * (ul + cl) * (h[i] - h[i - 1]))
 
         'right node'
-        cr = (c_b + (r * c_b * u[i + 1] - c_c * u[i]))/ (1 + (r * (u[i + 1] + c_c - (u[i] + c_b))))
-        ur = (u[i] - r * (u[i + 1] - u[i]) * cr) / (1 + r * (u[i + 1] - u[i]))
+        cr = (c_b + (r * (c_b * u[i + 1] - c_c * u[i]))) / (1 + (r * (u[i + 1] - c_c - (u[i] - c_b))))
+        ur = (u[i] + r * (u[i + 1] - u[i]) * cr) / (1 + r * (u[i + 1] - u[i]))
         hr = h[i] - (r * (ur - cr) * (h[i + 1] - h[i]))
 
     hp = [0 for i in range(1, nxc - 1)]
