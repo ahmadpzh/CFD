@@ -101,3 +101,4 @@ while e_t < t:
         hp[i] = c[0]
         up[i] = c[1]
 print()
+print()
