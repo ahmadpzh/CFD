@@ -53,9 +53,9 @@ dt = 10
 
 h = [yn_new for i in np.zeros(nxc)]
 c = [sqrt(9.81 * hn) for i in np.zeros(nxc)]
-q = [20 for i in np.zeros(nxc)]
-b = [0.3 for i in np.zeros(nxc)]
-u = [(q[i] / (b[i] * h[i])) for i, j in enumerate(np.zeros(nxc))]
+q = 20
+b = 0.3
+u = [(q / (b * h[i])) for i, j in enumerate(np.zeros(nxc))]
 r = dt / dx
 
 time_count = int(t / dt)
@@ -74,19 +74,18 @@ while e_t < t:
     e_t += dt
     j = int(e_t / dt)
     for i in range(1, nxc - 2):
+        c_b = sqrt(9.81 * h[i])
+        c_a = sqrt(9.81 * h[i - 1])
+        c_c = sqrt(9.81 * h[i + 1])
         'left node'
-        cl[i][j] = (c[i] + (r * sqrt(9.81 * h[i - 1]) * u[i] - sqrt(9.81 * h[i]) * u[i - 1])) / \
-                   (1 + (r * (u[i] + sqrt(9.81 * h[i]) - (u[i - 1] + sqrt(9.81 * h[i - 1])))))
-        ul[i][j] = (u[i] - r * (u[i] - u[i - 1]) * cl[i][j]) / \
-                   (1 + r * (u[i] - u[i - 1]))
-        hl[i][j] = h[i] - (r * (ul[i][j] + cl[i][j]) * (h[i] - h[i - 1]))
+        cl = (c_b + (r * c_a * u[i] - c_b * u[i - 1])) / (1 + (r * (u[i] + c_b - (u[i - 1] + c_a))))
+        ul = (u[i] - r * (u[i] - u[i - 1]) * cl) / (1 + r * (u[i] - u[i - 1]))
+        hl = h[i] - (r * (ul + cl) * (h[i] - h[i - 1]))
 
         'right node'
-        cr[i][j] = (c[i] + (r * sqrt(9.81 * h[i]) * u[i + 1] - sqrt(9.81 * h[i + 1]) * u[i])) / \
-                   (1 + (r * (u[i + 1] + sqrt(9.81 * h[i + 1]) - (u[i] + sqrt(9.81 * h[i])))))
-        ur[i][j] = (u[i] - r * (u[i + 1] - u[i]) * cr[i][j]) / \
-                   (1 + r * (u[i + 1] - u[i]))
-        hr[i][j] = h[i] - (r * (ur[i][j] + cr[i][j]) * (h[i + 1] - h[i]))
+        cr = (c_b + (r * c_b * u[i + 1] - c_c * u[i]))/ (1 + (r * (u[i + 1] + c_c - (u[i] + c_b))))
+        ur = (u[i] - r * (u[i + 1] - u[i]) * cr) / (1 + r * (u[i + 1] - u[i]))
+        hr = h[i] - (r * (ur - cr) * (h[i + 1] - h[i]))
 
     hp = [0 for i in range(1, nxc - 1)]
     up = [0 for i in range(1, nxc - 1)]
@@ -95,6 +94,15 @@ while e_t < t:
         h[0] = h[0] + (1 / 12 * 0.01)
         h[nxc - 1] = hn
 
-        a = np.reshape(([1 / dt, cl[i][j] / (9.81 * dt), 1 / dt, cr[i][j] / (9.81 * dt)]), (2, 2))
+        a = np.reshape((1 / dt, cl / (9.81 * dt), 1 / dt, cr / (9.81 * dt)), (2, 2))
+        b = np.reshape((hl / dt + (cl * ul / (9.81 * dt)) + (
+                    c_b * (((n ** 2 * ul ** 2) / (((b * h[i]) / (b + 2 * h[i])) ** (4 / 3))) - s0)),
+                       hr / dt + (cr * ur / (9.81 * dt)) + (
+                                   c_b * (s0 - ((n ** 2 * ur ** 2) / (((b * h[i]) / (b + 2 * h[i])) ** (4 / 3)))))),
+                       (2, 1))
 
+        c = np.linalg.solve(a, b)
+
+        hp[i] = c[0]
+        up[i] = c[1]
 print()
