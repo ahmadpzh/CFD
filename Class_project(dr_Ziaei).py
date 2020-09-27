@@ -82,23 +82,22 @@ while e_t < t:
         ur = (u[i] + r * (u[i + 1] - u[i]) * cr) / (1 + r * (u[i + 1] - u[i]))
         hr = h[i] - (r * (ur - cr) * (h[i + 1] - h[i]))
 
-    hp = [0 for i in range(1, nxc - 1)]
-    up = [0 for i in range(1, nxc - 1)]
+        hp = [0 for i in range(1, nxc - 1)]
+        up = [0 for i in range(1, nxc - 1)]
 
-    for i in range(1, nxc - 2):
-        h[0] = h[0] + (1 / 12 * 0.01)
-        h[nxc - 1] = hn
-
-        a = np.reshape((1 / dt, cl / (9.81 * dt), 1 / dt, cr / (9.81 * dt)), (2, 2))
-        b = np.reshape((hl / dt + (cl * ul / (9.81 * dt)) + (
-                    c_b * (((n ** 2 * ul ** 2) / (((b * h[i]) / (b + 2 * h[i])) ** (4 / 3))) - s0)),
-                       hr / dt + (cr * ur / (9.81 * dt)) + (
-                                   c_b * (s0 - ((n ** 2 * ur ** 2) / (((b * h[i]) / (b + 2 * h[i])) ** (4 / 3)))))),
+        a = np.reshape((1 / dt, cl / (9.81 * dt), 1 / dt, -cr / (9.81 * dt)), (2, 2))
+        b = np.reshape((float(hl / dt + (cl * ul / (9.81 * dt)) + (
+                    c_b * (((n ** 2 * ul ** 2) / (((b * h[i]) / (b + 2 * h[i])) ** (4 / 3))) - s0))),
+                       float(hr / dt - (cr * ur / (9.81 * dt)) + (
+                                   c_b * (s0 - ((n ** 2 * ur ** 2) / (((b * h[i]) / (b + 2 * h[i])) ** (4 / 3))))))),
                        (2, 1))
 
         c = np.linalg.solve(a, b)
 
         hp[i] = c[0]
         up[i] = c[1]
+    for i in range(1, nxc - 2):
+        h[0] = h[0] + (1 / 12 * 0.01)
+        h[nxc - 1] = hn
 print()
 print()
