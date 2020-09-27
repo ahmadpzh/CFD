@@ -8,7 +8,7 @@ import matplotlib as plt
 
 time1 = time.time()
 
-## Setting
+" Setting"
 s0 = 0.001  # bed slope
 b = 0.3  # flow width [m]
 n = 0.03  # maning coefficient
@@ -21,7 +21,7 @@ dx = 25  # space interval [m]
 e_t = 0
 epsilon = 10 ** (-5)
 
-## Mesh Generation
+"Mesh Generation"
 nxc = int(L / dx)
 nxv = nxc + 1
 xv = np.zeros(nxv)
@@ -30,7 +30,7 @@ for i in range(nxc):
     xv[i + 1] = xv[i] + dx
     xc[i] = 0.5 * (xv[i + 1] + xv[i])
 
-## Processing
+"Processing"
 yn_old = 0.1
 for i in range(100):
     yn_new = ((0.03 * 0.02 * (0.3 + 2 * yn_old) ** (2 / 3)) / (0.3 ** (5 / 3) * sqrt(0.001))) ** (3 / 5)
@@ -60,8 +60,8 @@ r = dt / dx
 
 time_count = int(t / dt)
 
-hp = np.zeros([nxc, time_count])
-up = np.zeros([nxc, time_count])
+hp = np.zeros(nxc)
+up = np.zeros(nxc)
 
 while e_t < t:
     e_t += dt
@@ -82,22 +82,29 @@ while e_t < t:
         ur = (u[i] + r * (u[i + 1] - u[i]) * cr) / (1 + r * (u[i + 1] - u[i]))
         hr = h[i] - (r * (ur - cr) * (h[i + 1] - h[i]))
 
-        hp = [0 for i in range(1, nxc - 1)]
-        up = [0 for i in range(1, nxc - 1)]
-
         a = np.reshape((1 / dt, cl / (9.81 * dt), 1 / dt, -cr / (9.81 * dt)), (2, 2))
-        b = np.reshape((float(hl / dt + (cl * ul / (9.81 * dt)) + (
-                    c_b * (((n ** 2 * ul ** 2) / (((b * h[i]) / (b + 2 * h[i])) ** (4 / 3))) - s0))),
-                       float(hr / dt - (cr * ur / (9.81 * dt)) + (
-                                   c_b * (s0 - ((n ** 2 * ur ** 2) / (((b * h[i]) / (b + 2 * h[i])) ** (4 / 3))))))),
+        d = np.reshape((hl / dt + (cl * ul / (9.81 * dt)) + (
+                    c_b * (((n ** 2 * ul ** 2) / (((b * h[i]) / (b + 2 * h[i])) ** (4 / 3))) - s0)),
+                       hr / dt - (cr * ur / (9.81 * dt)) + (
+                                   c_b * (((n ** 2 * ur ** 2) / (((b * h[i]) / (b + 2 * h[i])) ** (4 / 3))) - s0))),
                        (2, 1))
 
-        c = np.linalg.solve(a, b)
+        e = np.linalg.solve(a, d)
 
-        hp[i] = c[0]
-        up[i] = c[1]
-    for i in range(1, nxc - 2):
-        h[0] = h[0] + (1 / 12 * 0.01)
-        h[nxc - 1] = hn
+        hp[i] = e[0]
+        up[i] = e[1]
+
+    hp[0] = hp[0] + (1 / 12 * 0.01)
+    cr1 = sqrt(9.81*hp[0])
+    ur1 = q / (0.3 * (hp[0]))
+
+    up[0] = (((hp[0]-h[0])/dt) - (cr1 * (n ** 2 * ur1 ** 2 / ((b * h[0]) / (b + 2 * h[0])) ** (4 / 3))) + ((cr1 * ur1) / (9.81 * dt))) * (9.81 * dt / cr1)
+
+    hp[nxc-1] = h[nxc-2]
+    up[nxc-1] = u[nxc-2]
+
+    h = hp
+    u = up
+
 print()
 print()
