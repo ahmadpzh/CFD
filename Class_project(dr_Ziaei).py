@@ -53,7 +53,6 @@ dt = 10
 
 h = [yn_new for i in np.zeros(nxc)]
 c = [sqrt(9.81 * hn) for i in np.zeros(nxc)]
-q = 20
 b = 0.3
 u = [(q / (b * h[i])) for i, j in enumerate(np.zeros(nxc))]
 r = dt / dx
@@ -65,12 +64,10 @@ up = np.zeros(nxc)
 
 while e_t < t:
     e_t += dt
-    j = int(e_t / dt)
     for i in range(1, nxc - 2):
         c_b = sqrt(9.81 * h[i])
         c_a = sqrt(9.81 * h[i - 1])
         c_c = sqrt(9.81 * h[i + 1])
-        h[0] = h[0] + 0.2958
 
         'left node'
         cl = (c_b + (r * (c_a * u[i] - c_b * u[i - 1]))) / (1 + (r * (u[i] + c_b - (u[i - 1] + c_a))))
@@ -94,11 +91,13 @@ while e_t < t:
         hp[i] = e[0]
         up[i] = e[1]
 
-    hp[0] = hp[0] + (1 / 12 * 0.01)
+    hp[0] = hp[0] + ((h_g/6000) * dt)
     cr1 = sqrt(9.81*hp[0])
     ur1 = q / (0.3 * (hp[0]))
 
-    up[0] = (((hp[0]-h[0])/dt) - (cr1 * (n ** 2 * ur1 ** 2 / ((b * h[0]) / (b + 2 * h[0])) ** (4 / 3))) + ((cr1 * ur1) / (9.81 * dt))) * (9.81 * dt / cr1)
+    # up[0] = (((hp[0]-h[0])/dt) - (cr1 * (n ** 2 * ur1 ** 2 / ((b * h[0]) / (b + 2 * h[0])) ** (4 / 3))) + ((cr1 *
+    # ur1) / (9.81 * dt))) * (9.81 * dt / cr1)
+    up[0] = (1 / n) * ((b * h[0] / (b + 2 * h[0])) ** (2 / 3)) * sqrt(s0)
 
     hp[nxc-1] = h[nxc-2]
     up[nxc-1] = u[nxc-2]
