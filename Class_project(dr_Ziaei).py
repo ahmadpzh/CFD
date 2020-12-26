@@ -63,8 +63,9 @@ hp = np.zeros(nxc)
 up = np.zeros(nxc)
 
 while e_t < t:
+    print(e_t)
     e_t += dt
-    for i in range(1, nxc - 2):
+    for i in range(1, nxc - 1):
         c_b = sqrt(9.81 * h[i])
         c_a = sqrt(9.81 * h[i - 1])
         c_c = sqrt(9.81 * h[i + 1])
@@ -87,6 +88,7 @@ while e_t < t:
                        (2, 1))
 
         e = np.linalg.solve(a, d)
+        print(np.allclose(np.dot(a, e), d))
 
         hp[i] = e[0]
         up[i] = e[1]
@@ -102,8 +104,9 @@ while e_t < t:
     hp[nxc-1] = h[nxc-2]
     up[nxc-1] = u[nxc-2]
 
-    h = hp
-    u = up
+    for j in range(nxc):
+        h[j] = hp[j]
+        u[j] = up[j]
 
 print()
 print()
