@@ -16,8 +16,8 @@ time1 = time.time()
 l_x = 600  # length
 l_y = 400  # width
 std_error = 0.001
-n_x_max = 10  # grid in x-axis
-n_y_max = 10  # grid in y-axis
+n_x_max = 30  # grid in x-axis
+n_y_max = 20  # grid in y-axis
 dx = l_x / n_x_max
 dy = l_y / n_y_max
 T = 2000  # [m2/day]
@@ -125,7 +125,11 @@ while iteration < total_iteration:
 
     # print('L2Norm = ', L2Norm)
 
-    plt.contourf(h_new)
+    for j in range(1, n_x_max - 1):
+        for i in range(1, n_y_max - 1):
+            h_old[i][j] = h_new[i][j]
+
+    plt.contourf(h_old)
     plt.gca().invert_yaxis()
     plt.axis('off')
     plt.grid()
@@ -134,7 +138,7 @@ while iteration < total_iteration:
     plt.show(block=False)
     plt.clf()
 
-    h_old = h_new
+
 
 # print('L2Norm = ', np.linalg.norm(h_new))
 # print('iteration = ', iteration)
