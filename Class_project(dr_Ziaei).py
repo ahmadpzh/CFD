@@ -49,7 +49,7 @@ print('dt_max is= ', dt_max)
 # dt = int(input('enter dt (must be lower than dt_max)= '))
 # if dt >= dt_max:
 #     dt = int(input('enter dt (must be lower than dt_max)= '))
-dt = 10
+dt = 1
 
 h = [yn_new for i in np.zeros(nxc)]
 c = [sqrt(9.81 * hn) for i in np.zeros(nxc)]
@@ -88,7 +88,7 @@ while e_t < t:
                        (2, 1))
 
         e = np.linalg.solve(a, d)
-        print(np.allclose(np.dot(a, e), d))
+        print(np.allclose(np.dot(a, e), d))     # Check if 'e' is correct
 
         hp[i] = e[0]
         up[i] = e[1]
