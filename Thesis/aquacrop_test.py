@@ -17,8 +17,9 @@ model = AquaCropModel(SimStartTime=f'{1982}/10/01', SimEndTime=f'{1986}/05/30', 
 
 model.initialize()
 model.step(5)
-da_fr = model.Outputs.Final.Head()
-df = pd.DataFrame(da_fr)
+model.Outputs
+da_fr = model.Outputs
+df = pd.DataFrame(da_fr.Growth)
 print('output= ', df)
 
 input()
