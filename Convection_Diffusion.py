@@ -9,15 +9,15 @@ from mpl_toolkits.mplot3d import Axes3D
 time1 = time.time()
 
 # # Setting
-l = 10  # length
-w = l / 5  # width
+length = 10  # length
+w = length / 5  # width
 n_x = 20  # grid in x-axis
 n_y = 40  # grid in y-axis
 n_x_max = n_x + 1
 n_y_max = n_y + 1
 x0 = 0
 y0 = 0
-dx = (l / n_x)
+dx = (length / n_x)
 dy = (w / n_y)
 ro = 1
 u_mean = 1
@@ -60,7 +60,8 @@ h_new = np.reshape(np.zeros(n_y_max * n_x_max), [n_y_max, n_x_max])
 
 # # Boundary Condition
 # top boundary
-h_old[0] = 100
+h_old[0] = 100u = np.zeros(nxc)
+
 h_old[n_y_max - 1] = 100
 h_new[:] = h_old
 
@@ -68,7 +69,7 @@ h_new[:] = h_old
 q = 0.1  # newmann boundary [m/day]
 
 # # Processing
-while error > std_error:
+while error > 0.1:
     iteration += 1
 
     for i in range(1, n_y_max - 1):
@@ -176,11 +177,9 @@ print('L2Norm = ', error)
 print('iteration = ', iteration)
 
 plt.contourf(h_new)
-plt.gca().invert_yaxis()
 plt.colorbar().ax.set_ylabel('[m]', rotation=270)
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-fig.gca().invert_yaxis()
 surf = ax.plot_surface(x, y, h_new, cmap=cm.viridis)
 fig.colorbar(surf)
 # plt.savefig('Final_Result.png')
