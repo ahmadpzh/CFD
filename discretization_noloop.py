@@ -36,10 +36,9 @@ total_iteration = 200
 
 # # Mesh Generation
 x = np.zeros([n_x_max, n_y_max])
-x[1:][:] = [(x[:-1][j] + dx) for j in range(n_y_max)]
-for i in range(1, n_x_max):
-    for j in range(n_y_max):
-        x[i][j] = x[i - 1][j] + dx
+y = np.copy(x)
+x[1:] = np.cumsum(x[:-1] + dx, axis=0)
+y[:][1:] = np.cumsum(y[:][:-1] + dy, axis=1)    # not true
 
 y = np.zeros([n_x_max, n_y_max])
 for i in range(n_x_max):
