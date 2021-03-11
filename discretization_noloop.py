@@ -37,15 +37,12 @@ total_iteration = 200
 # # Mesh Generation
 x = np.zeros([n_x_max, n_y_max])
 y = np.copy(x)
+y2 = np.copy(x)
 x[1:] = np.cumsum(x[:-1] + dx, axis=0)
-y[:][1:] = np.cumsum(y[:][:-1] + dy, axis=1)    # not true
+y = np.roll(np.cumsum(y + dy, axis=1), 1)
+y[:, 0] = 0
 
-y = np.zeros([n_x_max, n_y_max])
-for i in range(n_x_max):
-    for j in range(1, n_y_max):
-        y[i][j] = y[i - 1][j] + dx
-
-# # Initial Condition
+"""Initial Condition"""
 h_old = [float(d_a) for i in np.zeros(n_y_max * n_x_max)]  # 50[m] for every cells except top boundary
 # h_old = np.zeros(n_y_max * n_x_max)  # creating zero matrix for process acceleration
 h_old = np.reshape(h_old, [n_y_max, n_x_max])  # convert to matrix 10*10
