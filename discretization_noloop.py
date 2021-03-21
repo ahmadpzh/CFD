@@ -39,8 +39,7 @@ x = np.zeros([n_x_max, n_y_max])
 y = np.copy(x)
 y2 = np.copy(x)
 x[1:] = np.cumsum(x[:-1] + dx, axis=0)
-y = np.roll(np.cumsum(y + dy, axis=1), 1)
-y[:, 0] = 0
+y[:][1:] = np.cumsum(y[:][:-1] + dx, axis=1)
 
 """Initial Condition"""
 h_old = [float(d_a) for i in np.zeros(n_y_max * n_x_max)]  # 50[m] for every cells except top boundary
