@@ -41,22 +41,19 @@ x[1:] = np.cumsum(x[:-1] + dx, axis=0)
 y[:][1:] = np.cumsum(y[:][:-1] + dy, axis=1)  # not true
 
 # # Initial Condition
-h_old = [float(d_a) for i in np.zeros(n_y_max * n_x_max)]  # 50[m] for every cells except top boundary
-# h_old = np.zeros(n_y_max * n_x_max)  # creating zero matrix for process acceleration
-h_old = np.reshape(h_old, [n_y_max, n_x_max])  # convert to matrix 10*10
-h_new = np.zeros(n_y_max * n_x_max)  # creating zero matrix for process acceleration
-h_new = np.reshape(h_new, [n_y_max, n_x_max])  # convert to matrix 10*10
+h_old = np.reshape([float(d_a) for i in np.zeros(n_y_max * n_x_max)], [n_y_max, n_x_max])  # convert to matrix 10*10
+h_new = np.reshape(np.zeros(n_y_max * n_x_max), [n_y_max, n_x_max])  # convert to matrix 10*10
 
-# # Boundary Condition
-# top boundary
-# h_old[0] = 100  # Dirichlet boundary
-# h_new[0] = 100  # Dirichlet boundary
+"""Boundary Condition"""
+"top boundary"
+h_old[0] = 100  # Dirichlet boundary
+h_new[0] = 100  # Dirichlet boundary
 
-# left boundary
+"left boundary"
 q = 0.1  # newmann boundary [m/day]
 
 
-# # Governing Equation (Water Head Distribution)
+"""Governing Equation (Water Head Distribution)"""
 def whd(a_p=(2 * a_known_e + 2 * a_known_n), side_coefficient_w=a_known_w, side_coefficient_e=a_known_e,
         side_coefficient_n=a_known_n, side_coefficient_s=a_known_s, source=0.):
     h_p = ((1 / a_p) * (side_coefficient_w * h_old[i][j - 1] + side_coefficient_e * h_old[i][j + 1] +
@@ -72,27 +69,31 @@ while iteration < total_iteration:
     # top boundary
     h_old[0] = 100
 
-    """left_boundary (constant_flow)"""
+    "left_boundary (constant_flow)"
     h_old[-1][0] = (1 / (a_known_e + a_known_n + a_known_s)) * ((2 * a_known_e) * h_old[-1][1] +
                                                                 a_known_n * h_old[-2][0] + q * area_x)
     h_old[1:-1, 0] = (1 / (a_known_e + a_known_n + a_known_s)) * ((2 * a_known_e) * h_old[1:-1, 1] +
                                                                   a_known_n * h_old[:-2, 0] + a_known_s *
                                                                   h_old[2:, 0] + q * area_x)
 
-    """left boundary (no flow)"""
+    "left boundary (no flow)"
     h_new[1:-1, 0] = (1 / (a_known_e + a_known_n + a_known_s)) * (a_known_e * h_old[1:-1, 1] +
                                                                   a_known_n * h_old[:-2, 0] + a_known_s *
                                                                   h_old[2:, 0])
+
     # j = 0
     # for i in range(1, n_y_max - 1):
     #     h_new[i][j] = (1 / (a_known_e + a_known_n + a_known_s)) * (a_known_e * h_old[i][j + 1] +
     #                                                                a_known_n * h_old[i - 1][j] + a_known_s *
     #                                                                h_old[i + 1][j])
-
-    """right boundary (no flow)"""
+    "right boundary (no flow)"
     h_old[1:-1, -1] = (1 / (a_known_w + a_known_n + a_known_s)) * (a_known_w * h_old[1:-1, -2] +
                                                                    a_known_n * h_old[:-2, -1] + a_known_s *
                                                                    h_old[2:, -1])
+    print('LHS= ', h_old[1:-1, -1])
+    print('RHS= ', (1 / (a_known_w + a_known_n + a_known_s)) * (a_known_w * h_old[1:-1, -2] +
+                                                                   a_known_n * h_old[:-2, -1] + a_known_s *
+                                                                   h_old[2:, -1]))
 
     # j = n_x_max - 1
     # for i in range(1, n_y_max - 1):
@@ -100,7 +101,7 @@ while iteration < total_iteration:
     #                                                                a_known_n * h_old[i - 1][j] + a_known_s *
     #                                                                h_old[i + 1][j])
 
-    """bottom boundary (no flow)"""
+    "bottom boundary (no flow)"
     i = n_y_max - 1
     for j in range(1, n_x_max):
         if j == n_x_max - 1:
